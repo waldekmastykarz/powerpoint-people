@@ -50,22 +50,98 @@ export function writeDataToOfficeDocument(result: Object): void {
 let imageCount = 0;
 
 export function showPeoplePicker(): void {
-  Providers.globalProvider = new SimpleProvider(() => {
-    return Promise.resolve(getAccessToken());
-  }, () => {
-    Providers.globalProvider.setState(ProviderState.SignedIn);
-    return Promise.resolve();
-  }, () => {
-    Providers.globalProvider.setState(ProviderState.SignedOut);
-    return Promise.resolve();
-  });
+  Providers.globalProvider = new SimpleProvider(
+    () => Promise.resolve(getAccessToken()),
+    () => {
+      Providers.globalProvider.setState(ProviderState.SignedIn);
+      return Promise.resolve();
+    },
+    function () {
+      Providers.globalProvider.setState(ProviderState.SignedOut);
+      return Promise.resolve();
+    }
+  );
   Providers.globalProvider.setState(ProviderState.SignedIn);
-  $("#content").append('<mgt-people-picker type="Person"></mgt-people-picker>');
-  $("#content").append("<button>Insert</button>");
-  $("#content button").click(() => {
-    const people = [...(($("#content mgt-people-picker")[0] as any).selectedPeople as IDynamicPerson[])];
-    imageCount = 0;
-    addPeopleInfo(people);
+  $("#signin").remove();
+  $("#content").append('<mgt-people-picker type="Person"></mgt-people-picker><div id="people"></div>');
+  $("mgt-people-picker")[0].addEventListener("selectionChanged", () => {
+    $("#people").html(`<mgt-people show-max="100">
+    <template>
+      <ul style="padding-left: 0">
+        <li data-for="person in people" style="list-style-type: none">
+          <mgt-person person-details="{{person}}" fetch-image="true" view="twolines" line2-property="jobTitle" data-props="{{@click: personClick}}">
+          </mgt-person>
+        </li>
+      </ul>
+    </template>
+  </mgt-people>
+  <button>Insert all</button>`);
+    ($("mgt-people")[0] as any).templateContext = {
+      personClick: (e, context) => {
+        if (clickedOnPhoto(e)) {
+          addPicture(context.person, true);
+        } else {
+          addInfo(context.person);
+        }
+      },
+    };
+    ($("mgt-people")[0] as any).people = [
+      ...(($("#content mgt-people-picker")[0] as any).selectedPeople as IDynamicPerson[]),
+    ];
+    $("#content button").click(() => {
+      imageCount = 0;
+      const people = [...(($("#content mgt-people-picker")[0] as any).selectedPeople as IDynamicPerson[])];
+      addPeopleInfo(people);
+    });
+  });
+}
+
+function clickedOnPhoto(event: Event) {
+  const path = (event as any).path;
+  if (!path) {
+    return false;
+  }
+
+  return path[2].className === "user-avatar" || path[0].className.indexOf("initials") > -1;
+}
+
+function addPicture(person: IDynamicPerson, single: boolean) {
+  return new Promise<void>((resolve, reject): void => {
+    if (!person.personImage) {
+      return resolve();
+    }
+    const options: Office.SetSelectedDataOptions = {
+      coercionType: Office.CoercionType.Image,
+      imageWidth: 100,
+    };
+    if (!single) {
+      options.imageLeft = 150 + 150 * imageCount;
+      options.imageTop = 400;
+    }
+    Office.context.document.setSelectedDataAsync(
+      person.personImage.substr(person.personImage.indexOf(",") + 1),
+      options,
+      (res) => {
+        if (res.error) {
+          return reject(res.error.message);
+        }
+
+        resolve();
+      }
+    );
+  });
+}
+
+function addInfo(person: IDynamicPerson) {
+  return new Promise<void>((resolve, reject): void => {
+    const p = `${person.displayName}\n${person.jobTitle}`;
+    Office.context.document.setSelectedDataAsync(p, (res) => {
+      if (res.error) {
+        return reject(res.error.message);
+      }
+
+      resolve();
+    });
   });
 }
 
@@ -78,66 +154,46 @@ function addPeopleInfo(people: IDynamicPerson[]) {
         addPeopleInfo(people);
       }
     },
-    (err) => console.error(err)
+    (err) => logError(err)
   );
 }
 
 function addPersonInfo(person: IDynamicPerson): Promise<void> {
   return new Promise<void>((resolve, reject): void => {
-    const p = `${person.displayName}\n${person.jobTitle}`;
-    Office.context.document.setSelectedDataAsync(p, (res) => {
-      if (res.error) {
-        return reject(res.error);
-      }
-
-      Office.context.document.getSelectedDataAsync(
-        Office.CoercionType.Text,
-        { valueFormat: Office.ValueFormat.Formatted },
-        (res) => {
-          if (res.error) {
-            return reject(res.error);
+    addInfo(person).then(
+      () => {
+        Office.context.document.getSelectedDataAsync(Office.CoercionType.SlideRange, function (asyncResult) {
+          if (asyncResult.status === Office.AsyncResultStatus.Failed) {
+            return reject("Action failed with error: " + asyncResult.error.message);
           }
 
-          Office.context.document.getSelectedDataAsync(Office.CoercionType.SlideRange, function (asyncResult) {
+          const currentSlideId = (asyncResult.value as any).slides[0].id;
+          Office.context.document.goToByIdAsync(currentSlideId, Office.GoToType.Slide, function (asyncResult) {
             if (asyncResult.status === Office.AsyncResultStatus.Failed) {
               return reject("Action failed with error: " + asyncResult.error.message);
             }
 
-            const currentSlideId = (asyncResult.value as any).slides[0].id;
-            Office.context.document.goToByIdAsync(currentSlideId, Office.GoToType.Slide, function (asyncResult) {
-              if (asyncResult.status === Office.AsyncResultStatus.Failed) {
-                return reject("Action failed with error: " + asyncResult.error.message);
-              }
+            if (!person.personImage) {
+              return resolve();
+            }
 
-              if (!person.personImage) {
-                return resolve();
-              }
-
-              Office.context.document.setSelectedDataAsync(
-                person.personImage.substr(person.personImage.indexOf(",") + 1),
-                {
-                  coercionType: Office.CoercionType.Image,
-                  imageWidth: 100,
-                  imageLeft: 150 + 1000 * imageCount,
-                  imageTop: 400,
-                },
-                (res) => {
-                  if (res.error) {
-                    return reject(res.error);
-                  }
-
-                  Office.context.document.goToByIdAsync(currentSlideId, Office.GoToType.Slide, function (asyncResult) {
-                    if (asyncResult.status === Office.AsyncResultStatus.Failed) {
-                      return reject("Action failed with error: " + asyncResult.error.message);
-                    }
-
-                    resolve();
-                  });
+            addPicture(person, false).then(() => {
+              Office.context.document.goToByIdAsync(currentSlideId, Office.GoToType.Slide, function (asyncResult) {
+                if (asyncResult.status === Office.AsyncResultStatus.Failed) {
+                  return reject("Action failed with error: " + asyncResult.error.message);
                 }
-              );
+
+                resolve();
+              });
             });
           });
         });
-    });
+      },
+      (err) => logError(err)
+    );
   });
+}
+
+function logError(error: string) {
+  console.error(error);
 }
