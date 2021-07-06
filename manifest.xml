@@ -87,6 +87,10 @@
       <Resource>api://localhost:3000/78838ccc-cfb8-4272-b732-4876c7f5bc5e</Resource>
       <Scopes>
         <Scope>User.Read</Scope>
+        <Scope>People.Read</Scope>
+        <Scope>User.ReadBasic.All</Scope>
+        <Scope>openid</Scope>
+        <Scope>offline_access</Scope>
         <Scope>profile</Scope>
       </Scopes>
     </WebApplicationInfo>
