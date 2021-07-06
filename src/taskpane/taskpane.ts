@@ -62,8 +62,12 @@ export function showPeoplePicker(): void {
     }
   );
   Providers.globalProvider.setState(ProviderState.SignedIn);
-  $("#signin").remove();
-  $("#content").append('<mgt-people-picker type="Person"></mgt-people-picker><div id="people"></div>');
+  $("#signinWrapper, .ms-firstrun-instructionstep__welcome-intro").remove();
+  $("#content").append(
+    '<p class="ms-font-m ms-firstrun-instructionstep__welcome-intro">Select people to add to the presentation:</p>'
+  );
+  $("#content").append('<mgt-people-picker type="Person"></mgt-people-picker>');
+  $("#content").append('<div id="people"></div>');
   $("mgt-people-picker")[0].addEventListener("selectionChanged", () => {
     $("#people").html(`<mgt-people show-max="100">
     <template>
@@ -74,8 +78,7 @@ export function showPeoplePicker(): void {
         </li>
       </ul>
     </template>
-  </mgt-people>
-  <button>Insert all</button>`);
+  </mgt-people>`);
     ($("mgt-people")[0] as any).templateContext = {
       personClick: (e, context) => {
         if (clickedOnPhoto(e)) {
@@ -85,14 +88,20 @@ export function showPeoplePicker(): void {
         }
       },
     };
-    ($("mgt-people")[0] as any).people = [
-      ...(($("#content mgt-people-picker")[0] as any).selectedPeople as IDynamicPerson[]),
-    ];
-    $("#content button").click(() => {
-      imageCount = 0;
-      const people = [...(($("#content mgt-people-picker")[0] as any).selectedPeople as IDynamicPerson[])];
-      addPeopleInfo(people);
-    });
+    const people = [...(($("#content mgt-people-picker")[0] as any).selectedPeople as IDynamicPerson[])];
+    ($("mgt-people")[0] as any).people = people;
+    if (people.length > 0) {
+      $("#people").prepend(
+        `<p class="ms-font-m ms-firstrun-instructionstep__welcome-intro">To add a person, select a placeholder in your deck and click person's photo or information to add it to the selected placeholder.</p>
+        <p class="ms-font-m ms-firstrun-instructionstep__welcome-intro">Alternatively, you can add all information at once using the <b>Insert all</b> button. You'll need to lay it out on the slide yourself</p>`
+      );
+      $("#people").append("<button>Insert all</button>");
+      $("#content button").click(() => {
+        imageCount = 0;
+        const people = [...(($("#content mgt-people-picker")[0] as any).selectedPeople as IDynamicPerson[])];
+        addPeopleInfo(people);
+      });
+    }
   });
 }
 
@@ -195,5 +204,5 @@ function addPersonInfo(person: IDynamicPerson): Promise<void> {
 }
 
 function logError(error: string) {
-  console.error(error);
+  $(".message-area").html(error);
 }

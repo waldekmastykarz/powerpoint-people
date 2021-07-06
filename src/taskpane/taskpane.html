@@ -25,60 +25,21 @@
 </head>
 
 <body class="ms-font-m ms-welcome ms-Fabric">
-    <header class="ms-welcome__header ms-bgColor-neutralLighter" style="display: none;">
-        <img width="90" height="90" src="../../assets/logo-filled.png" alt="Contoso" title="Contoso" />
-        <h1 class="ms-font-su">Welcome</h1>
-    </header>
     <main class="ms-firstrun-instructionstep">
-        <ul class="ms-List ms-welcome__features" style="display: none;">
-            <li class="ms-ListItem">
-                <i class="ms-Icon ms-Icon--Ribbon ms-font-xl"></i>
-                <span class="ms-font-m">Achieve more with Office integration</span>
-            </li>
-            <li class="ms-ListItem">
-                <i class="ms-Icon ms-Icon--Unlock ms-font-xl"></i>
-                <span class="ms-font-m">Unlock features and functionality</span>
-            </li>
-            <li class="ms-ListItem">
-                <i class="ms-Icon ms-Icon--Design ms-font-xl"></i>
-                <span class="ms-font-m">Create and visualize like a pro</span>
-            </li>
-        </ul>
-        <section class="ms-firstrun-instructionstep__header" style="display: none;">
-            <h2 class="ms-font-m"> This add-in demonstrates how to use single sign-on by making a call to Microsoft
-                Graph to get user profile data.</h2>
-            <div class="ms-firstrun-instructionstep__header--image"></div>
+        <section class="ms-firstrun-instructionstep__header">
+            <h2 class="ms-font-m">This add-in let's you quickly add information about people from your organization to
+                your presentation.</h2>
         </section>
         <div class="ms-firstrun-instructionstep__welcome-body">
-            <p class="ms-font-m ms-firstrun-instructionstep__welcome-intro"><b>To use this add-in:</b></p>
-            <ul class="ms-List ms-firstrun-instructionstep__list" style="display: none;">
-                <li class="ms-ListItem">
-                    <span class="ms-ListItem-primaryText">Click the <b>Get My User Profile Information</b>
-                        button.</span>
-                    <div class="clearfix"></div>
-                </li>
-                <li class="ms-ListItem">
-                    <span class="ms-ListItem-secondaryText">If you are not signed into Office, you are prompted to sign
-                        in.</span>
-                    <div class="clearfix"></div>
-                </li>
-                <li class="ms-ListItem">
-                    <span class="ms-ListItem-primaryText">You may also be prompted to accept the app's permissions request.</span>
-                    <div class="clearfix"></div>
-                </li>
-                <li class="ms-ListItem">
-                    <span class="ms-ListItem-primaryText">Your user profile information will be displayed in the document.</span>
-                    <div class="clearfix"></div>
-                </li>
-            </ul>
-            <br>
-            <p align="center" id="content">
-                <button id="signin" class="popupButton ms-Button ms-Button--primary"><span
-                        class="ms-Button-label">Sign in</span></button>
-            </p>
+            <p class="ms-font-m ms-firstrun-instructionstep__welcome-intro"><b>Start, by signing in with your work
+                    account:</b></p>
+            <div id="signinWrapper">
+                <button id="signin" class="popupButton ms-Button ms-Button--primary"><span class="ms-Button-label">Sign
+                        in</span></button>
+            </div>
+            <p id="content"></p>
         </div>
         <div class="message-area">
-
         </div>
     </main>
 </body>

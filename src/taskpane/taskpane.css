@@ -56,7 +56,7 @@
  }
 
  .ms-firstrun-instructionstep__welcome-body {
-   padding-left: 20px;
+   padding: 0 20px;
  }
 
  .ms-firstrun-instructionstep__list {
@@ -94,4 +94,16 @@ b {
 
 #people {
   text-align: left;
+}
+
+#people button {
+  margin-top: 1em;
+}
+
+.message-area {
+  color: #f00;
+}
+
+#signinWrapper {
+  text-align: center;
 }
